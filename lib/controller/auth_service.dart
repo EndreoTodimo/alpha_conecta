@@ -1,6 +1,7 @@
 import 'package:alpha_conecta/controller/dio_service_ws.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:alpha_conecta/validates/myshow_dialog.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../model/user.dart';
 
@@ -21,22 +22,20 @@ class AuthService extends ChangeNotifier {
 
     try {
       Response response = await oFWRest.post(
-        '/api/oauth2/v1/token?',
+        '/api/oauth2/v1/token?grant_type=password',
         data: {},
-        queryParameters: {
-          'grant_type': 'password',
-          'password': usuario,
-          'username': senha
-        },
+        queryParameters: {'password': usuario, 'username': senha},
       );
 
       final oToken = Token.fromJson(response.data);
 
       await Save(oToken);
 
-      Map<String, dynamic> dadosUser = {'name': usuario, 'password': senha};
+      // Map<String, dynamic> dadosUser = {};
+      // dadosUser['name'] = usuario;
+      // dadosUser['password'] = senha;
 
-      usuario = User.fromJson(dadosUser) as String;
+      // usuario = User.fromJson(dadosUser);
 
       isloading = false;
       notifyListeners();
@@ -47,16 +46,25 @@ class AuthService extends ChangeNotifier {
 
       if (e.response != null) {
         if (e.response!.statusCode! >= 400 || e.response!.statusCode! <= 499) {
-          // oLoginRest = InterfaceLogin.fromJson(e.response!.data);
-          // SnackMenssageWarning(oLoginRest.message.toString());
-        }
+          isloading = false;
+          notifyListeners();
 
-        return false;
+          showMyDialog(
+              title: 'Alerta!',
+              msg: e.response!.statusMessage.toString(),
+              lsuccess: false);
+        }
       } else {
         if (e.message.contains('Connection failed')) {
-          // SnackMenssageWarning('Falha na conexÃ£o com servidor.');
+          showMyDialog(
+              title: 'Alerta!', msg: 'Falha na conexão!', lsuccess: false);
+          isloading = false;
+          notifyListeners();
         } else {
           // SnackMenssageWarning(e.message);
+          showMyDialog(title: 'Alerta!', msg: e.message, lsuccess: false);
+          isloading = false;
+          notifyListeners();
         }
       }
     }
@@ -75,6 +83,18 @@ class AuthService extends ChangeNotifier {
     await share.setString('token', oLogin.accessToken.toString());
     await share.setString('refresh', oLogin.refreshToken.toString());
     await share.setInt('expire', oLogin.expiresIn!);
+  }
+
+  void fwalert(BuildContext ctx, String cmsg, Color cor) {
+    ScaffoldMessenger.of(ctx).showSnackBar(
+      SnackBar(
+        backgroundColor: cor,
+        content: Text(
+          cmsg.toString().toUpperCase(),
+          textAlign: TextAlign.center,
+        ),
+      ),
+    );
   }
 }
 

@@ -3,7 +3,7 @@ import 'package:alpha_conecta/view/home_page.dart';
 import 'package:alpha_conecta/view/loanding_page.dart';
 import 'package:alpha_conecta/view/login_page.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart' show Provider;
+import 'package:provider/provider.dart';
 
 class AuthCheck extends StatefulWidget {
   const AuthCheck({super.key});
